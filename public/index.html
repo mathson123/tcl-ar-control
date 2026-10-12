@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TCL Ar</title>
+<style>
+  :root {
+    --bg: #0d1117; --side: #11161e; --card: #161c26; --line: #232b38; --text: #e6edf3; --mute: #8b98a9;
+    --cool: #38bdf8; --heat: #fb923c; --on: #22c55e; --off: #475569; --danger: #f87171;
+    --accent: var(--cool);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.4 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hidden { display: none !important; }
+
+  /* Login */
+  #login { height: 100%; display: grid; place-items: center; }
+  #login form { width: min(360px, 90vw); background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 28px; display: grid; gap: 14px; }
+  #login h1 { margin: 0; font-size: 20px; }
+  #login p { margin: 0; color: var(--mute); font-size: 13px; }
+  label { display: grid; gap: 6px; font-size: 13px; color: var(--mute); }
+  input { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: var(--text); font: inherit; }
+  .primary { background: var(--accent); color: #04121c; font-weight: 600; padding: 11px; border-radius: 10px; }
+  .primary:disabled { opacity: .6; cursor: wait; }
+  .err { color: var(--danger); font-size: 13px; min-height: 1em; }
+
+  /* Layout */
+  #app { height: 100%; display: grid; grid-template-columns: 260px 1fr; }
+  aside { background: var(--side); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 18px 12px; gap: 4px; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 18px; font-weight: 700; font-size: 16px; }
+  .brand svg { color: var(--cool); }
+  .nav { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; text-align: left; width: 100%; }
+  .nav:hover { background: #ffffff0a; }
+  .nav.active { background: #38bdf81a; color: var(--cool); }
+  .nav .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--off); flex: none; }
+  .nav .dot.on { background: var(--on); box-shadow: 0 0 8px var(--on); }
+  .nav .dot.offline { background: transparent; border: 1px solid var(--mute); }
+  .nav .meta { margin-left: auto; color: var(--mute); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .section { color: var(--mute); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 14px 10px 6px; }
+  .side-foot { margin-top: auto; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .side-foot .row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ghost { border: 1px solid var(--line); border-radius: 10px; padding: 9px; font-size: 13px; }
+  .ghost:hover { background: #ffffff0a; }
+  .user { color: var(--mute); font-size: 12px; padding: 4px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  main { overflow: auto; padding: 28px 36px; }
+  header.top { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  header.top h2 { margin: 0; font-size: 24px; }
+  .badge { font-size: 12px; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line); color: var(--mute); }
+  .badge.on { color: var(--on); border-color: #22c55e55; }
+  .sync { margin-left: auto; color: var(--mute); font-size: 12px; }
+
+  /* Visão geral */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 14px; cursor: pointer; transition: border-color .15s; }
+  .tile:hover { border-color: #38bdf866; }
+  .tile.off { opacity: .75; }
+  .tile .t-head { display: flex; align-items: center; justify-content: space-between; }
+  .tile .t-name { font-weight: 600; }
+  .tile .t-temp { font-size: 40px; font-weight: 300; font-variant-numeric: tabular-nums; }
+  .tile .t-temp small { font-size: 14px; color: var(--mute); margin-left: 6px; }
+  .tile .t-sub { color: var(--mute); font-size: 12px; }
+
+  .pwr { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: #ffffff0d; color: var(--mute); transition: .15s; }
+  .pwr.on { background: var(--on); color: #03140a; box-shadow: 0 0 18px #22c55e55; }
+  .pwr:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* Detalhe */
+  .detail { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 24px; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+  .dial { display: grid; justify-items: center; gap: 18px; }
+  .ring { width: 240px; height: 240px; border-radius: 50%; display: grid; place-items: center; text-align: center;
+          background: radial-gradient(circle at center, var(--card) 62%, transparent 63%), conic-gradient(var(--accent) var(--pct), var(--line) 0); transition: --pct .3s; }
+  .ring .big { font-size: 64px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ring .big sup { font-size: 22px; color: var(--mute); }
+  .ring .lbl { color: var(--mute); font-size: 12px; margin-top: 6px; }
+  .steps { display: flex; gap: 14px; align-items: center; }
+  .step { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--line); font-size: 24px; display: grid; place-items: center; }
+  .step:hover { background: #ffffff0a; }
+  .room { color: var(--mute); font-size: 13px; }
+
+  .group { display: grid; gap: 10px; margin-bottom: 22px; }
+  .group h3 { margin: 0; font-size: 12px; color: var(--mute); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+  .seg button { border: 1px solid var(--line); border-radius: 12px; padding: 12px 6px; display: grid; justify-items: center; gap: 6px; font-size: 12px; color: var(--mute); }
+  .seg button:hover { background: #ffffff08; }
+  .seg button.sel { border-color: var(--accent); color: var(--text); background: #38bdf814; }
+  .seg button.sel svg { color: var(--accent); }
+  .toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .tg { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .sw { width: 36px; height: 20px; border-radius: 99px; background: var(--off); position: relative; transition: .15s; flex: none; }
+  .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: .15s; }
+  .tg.on .sw { background: var(--accent); }
+  .tg.on .sw::after { left: 18px; }
+  .disabled { opacity: .45; pointer-events: none; }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #2a1215; border: 1px solid #f8717155; color: #fecaca; padding: 12px 16px; border-radius: 12px; max-width: 420px; font-size: 13px; }
+  .empty { color: var(--mute); padding: 40px 0; }
+
+  @media (max-width: 860px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); }
+    .detail { grid-template-columns: 1fr; }
+    main { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<section id="login" class="hidden">
+  <form id="loginForm">
+    <h1>Entrar na conta TCL Home</h1>
+    <p>Mesmo e-mail e senha do app TCL Home do celular. A senha vai direto para a TCL; aqui no PC fica salvo só um hash.</p>
+    <label>E-mail<input name="username" type="email" autocomplete="username" required></label>
+    <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
+    <button class="primary" type="submit">Entrar</button>
+    <div class="err" id="loginErr"></div>
+    <p><b>App não oficial</b> — não é da TCL nem aprovado por ela. Compatível com aparelhos do <b>TCL Home</b>.
+      Não compatível com TCL Smart / Smart Life e Intelligent AC.</p>
+  </form>
+</section>
+
+<div id="app" class="hidden">
+  <aside>
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M4.9 4.9l14.2 14.2M2 12h20M4.9 19.1 19.1 4.9"/><circle cx="12" cy="12" r="3"/></svg>
+      TCL Ar
+    </div>
+    <button class="nav" data-view="overview">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Visão geral
+    </button>
+    <div class="section">Aparelhos</div>
+    <div id="navList"></div>
+    <div class="side-foot">
+      <div class="row">
+        <button class="ghost" id="allOn">Ligar todos</button>
+        <button class="ghost" id="allOff">Desligar todos</button>
+      </div>
+      <div class="user" id="userLbl"></div>
+      <button class="ghost" id="logout">Sair</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<div id="toast" class="toast hidden" role="alert"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const ICON = {
+  power: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 7.2a8 8 0 1 0 11.4 0"/></svg>',
+  auto: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 10 4h4l6 16M7 14h10"/></svg>',
+  cool: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19"/></svg>',
+  dry: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3s7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 7-12 7-12z"/></svg>',
+  fan: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M12 10c0-4 1-7 4-7s2 5-4 7zM14 12c4 0 7 1 7 4s-5 2-7-4zM12 14c0 4-1 7-4 7s-2-5 4-7zM10 12c-4 0-7-1-7-4s5-2 7 4z"/></svg>',
+  heat: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+};
+// workMode padrão dos split TCL (Auto, Frio, Desumidificar, Ventilar, Quente). Alguns modelos sem Auto/Quente usam outra ordem.
+const MODES = [[0, "Auto", "auto"], [1, "Frio", "cool"], [2, "Desumid.", "dry"], [3, "Ventilar", "fan"], [4, "Quente", "heat"]];
+const FANS = [["Auto", { windSpeed: 0, turbo: 0, silenceSwitch: 0 }], ["Silêncio", { windSpeed: 2, turbo: 0, silenceSwitch: 1 }],
+  ["Baixa", { windSpeed: 2, turbo: 0, silenceSwitch: 0 }], ["Média", { windSpeed: 4, turbo: 0, silenceSwitch: 0 }],
+  ["Alta", { windSpeed: 6, turbo: 0, silenceSwitch: 0 }], ["Turbo", { windSpeed: 6, turbo: 1, silenceSwitch: 0 }]];
+const FANS7 = [["Auto", { windSpeedAutoSwitch: 1, windSpeed7Gear: 0 }], ...[1, 2, 3, 4, 5, 6].map((n) => [String(n), { windSpeedAutoSwitch: 0, windSpeed7Gear: n }]), ["Turbo", { windSpeedAutoSwitch: 0, windSpeed7Gear: 7 }]];
+const TOGGLES = [["verticalSwitch", "Oscilar vertical"], ["horizontalSwitch", "Oscilar horizontal"], ["ECO", "ECO"], ["sleep", "Modo sono"], ["screen", "Display"], ["beepSwitch", "Bipe"]];
+const TMIN = 16, TMAX = 31;
+
+let devices = [], view = localGet("view") || "overview", lastSync = null, pending = new Map(), user = "";
+
+function localGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function localSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { ...opts, headers: { "content-type": "application/json", "x-tcl-ar": "1", ...opts.headers } });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) { showLogin(); throw new Error(j.error || "Faça login"); }
+  if (!r.ok) throw new Error(j.error || `Erro ${r.status}`);
+  return j;
+}
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.remove("hidden"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.add("hidden"), 6000); }
+function showLogin() { $("#app").classList.add("hidden"); $("#login").classList.remove("hidden"); }
+function showApp() { $("#login").classList.add("hidden"); $("#app").classList.remove("hidden"); }
+
+const st = (d) => ({ ...d.state, ...pending.get(d.id) });
+const isOn = (d) => Number(st(d).powerSwitch) === 1;
+const num = (v) => (v === undefined || v === null || v < 0 ? null : Number(v));
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+async function refresh() {
+  try {
+    devices = await api("/api/devices");
+    lastSync = new Date();
+    pending.clear();
+    render();
+  } catch (e) { toast(e.message); }
+}
+
+async function setState(id, desired) {
+  pending.set(id, { ...pending.get(id), ...desired }); // otimista
+  render();
+  try {
+    await api(`/api/devices/${encodeURIComponent(id)}`, { method: "POST", body: JSON.stringify({ desired }) });
+    setTimeout(refresh, 2500);
+  } catch (e) { pending.delete(id); render(); toast("Não foi: " + e.message); }
+}
+
+function go(v) { view = v; localSet("view", v); render(); }
+
+function renderNav() {
+  $("#navList").innerHTML = devices.map((d) => {
+    const s = st(d);
+    const cls = !d.online ? "offline" : isOn(d) ? "on" : "";
+    const t = num(s.currentTemperature);
+    return `<button class="nav ${view === d.id ? "active" : ""}" data-view="${esc(d.id)}">
+      <span class="dot ${cls}"></span>${esc(d.name)}<span class="meta">${t !== null ? t + "°" : ""}</span></button>`;
+  }).join("") || '<div class="user">Nenhum aparelho</div>';
+  document.querySelectorAll(".nav").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
+}
+
+function renderOverview() {
+  const sync = lastSync ? `Atualizado ${lastSync.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "";
+  const tiles = devices.map((d) => {
+    const s = st(d), on = isOn(d);
+    const mode = MODES.find((m) => m[0] === Number(s.workMode));
+    return `<div class="tile ${on ? "" : "off"}" data-open="${esc(d.id)}">
+      <div class="t-head"><span class="t-name">${esc(d.name)}</span>
+        <button class="pwr ${on ? "on" : ""}" data-power="${esc(d.id)}" ${d.online ? "" : "disabled"} aria-label="Ligar/desligar ${esc(d.name)}">${ICON.power}</button></div>
+      <div class="t-temp">${num(s.targetTemperature) ?? "--"}°<small>alvo</small></div>
+      <div class="t-sub">${!d.online ? "Offline" : on ? (mode ? mode[1] : "Ligado") : "Desligado"} · ambiente ${num(s.currentTemperature) ?? "--"}°</div>
+    </div>`;
+  }).join("");
+  return `<header class="top"><h2>Visão geral</h2><span class="sync">${sync}</span></header>
+    ${devices.length ? `<div class="grid">${tiles}</div>` : '<div class="empty">Nenhum ar-condicionado encontrado na conta TCL Home.</div>'}`;
+}
+
+function renderDetail(d) {
+  const s = st(d), on = isOn(d), off = !d.online;
+  const target = num(s.targetTemperature) ?? 24;
+  const mode = Number(s.workMode);
+  const heat = mode === 4;
+  const use7 = s.windSpeed7Gear !== undefined && s.windSpeed === undefined;
+  const fans = use7 ? FANS7 : FANS;
+  const fanSel = fans.findIndex(([, v]) => Object.entries(v).every(([k, x]) => Number(s[k] ?? 0) === x));
+  const pct = ((target - TMIN) / (TMAX - TMIN)) * 100;
+  const toggles = TOGGLES.filter(([k]) => s[k] !== undefined);
+  return `<header class="top"><h2>${esc(d.name)}</h2>
+      <span class="badge ${d.online ? "on" : ""}">${d.online ? "Online" : "Offline"}</span>
+      ${d.model ? `<span class="badge">${esc(d.model)}</span>` : ""}
+      <span class="sync"><button class="pwr ${on ? "on" : ""}" data-power="${esc(d.id)}" ${off ? "disabled" : ""} aria-label="Ligar/desligar">${ICON.power}</button></span></header>
+    ${s._error ? `<p class="err">${esc(s._error)}</p>` : ""}
+    <div class="detail ${off ? "disabled" : ""}" style="--accent:${heat ? "var(--heat)" : "var(--cool)"}">
+      <div class="card dial">
+        <div class="ring" style="--pct:${pct}%"><div><div class="big">${target}<sup>°C</sup></div><div class="lbl">${on ? "temperatura alvo" : "desligado"}</div></div></div>
+        <div class="steps">
+          <button class="step" data-temp="-1" aria-label="Diminuir">−</button>
+          <span class="room">Ambiente <b>${num(s.currentTemperature) ?? "--"}°C</b></span>
+          <button class="step" data-temp="1" aria-label="Aumentar">+</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="group"><h3>Modo</h3><div class="seg">
+          ${MODES.map(([v, l, i]) => `<button class="${mode === v ? "sel" : ""}" data-mode="${v}">${ICON[i]}${l}</button>`).join("")}
+        </div></div>
+        <div class="group"><h3>Ventilação</h3><div class="seg">
+          ${fans.map(([l], i) => `<button class="${fanSel === i ? "sel" : ""}" data-fan="${i}">${l}</button>`).join("")}
+        </div></div>
+        ${toggles.length ? `<div class="group"><h3>Funções</h3><div class="toggles">
+          ${toggles.map(([k, l]) => `<button class="tg ${Number(s[k]) === 1 ? "on" : ""}" data-toggle="${k}">${l}<span class="sw"></span></button>`).join("")}
+        </div></div>` : ""}
+      </div>
+    </div>`;
+}
+
+function render() {
+  if (view !== "overview" && !devices.find((d) => d.id === view)) view = "overview";
+  renderNav();
+  const d = devices.find((x) => x.id === view);
+  $("#main").innerHTML = d ? renderDetail(d) : renderOverview();
+  $("#main").dataset.dev = d ? d.id : "";
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button, .tile");
+  if (!b) return;
+  const id = $("#main").dataset.dev;
+  const d = devices.find((x) => x.id === id);
+  if (b.dataset.view) return go(b.dataset.view);
+  if (b.dataset.power) { e.stopPropagation(); const dv = devices.find((x) => x.id === b.dataset.power); return setState(dv.id, { powerSwitch: isOn(dv) ? 0 : 1 }); }
+  if (b.dataset.open) return go(b.dataset.open);
+  if (!d) return;
+  if (b.dataset.temp) {
+    const cur = num(st(d).targetTemperature) ?? 24;
+    const next = Math.min(TMAX, Math.max(TMIN, cur + Number(b.dataset.temp)));
+    if (next !== cur) setState(d.id, { targetTemperature: next });
+  }
+  if (b.dataset.mode) setState(d.id, { workMode: Number(b.dataset.mode), ...(isOn(d) ? {} : { powerSwitch: 1 }) });
+  if (b.dataset.fan) {
+    const s = st(d); const fans = s.windSpeed7Gear !== undefined && s.windSpeed === undefined ? FANS7 : FANS;
+    setState(d.id, fans[Number(b.dataset.fan)][1]);
+  }
+  if (b.dataset.toggle) setState(d.id, { [b.dataset.toggle]: Number(st(d)[b.dataset.toggle]) === 1 ? 0 : 1 });
+});
+
+$("#allOn").onclick = () => devices.filter((d) => d.online && !isOn(d)).forEach((d) => setState(d.id, { powerSwitch: 1 }));
+$("#allOff").onclick = () => devices.filter((d) => d.online && isOn(d)).forEach((d) => setState(d.id, { powerSwitch: 0 }));
+$("#logout").onclick = async () => { await api("/api/logout", { method: "POST" }).catch(() => {}); devices = []; showLogin(); };
+
+$("#loginForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target), btn = $("button", e.target);
+  btn.disabled = true; btn.textContent = "Entrando…"; $("#loginErr").textContent = "";
+  try {
+    await api("/api/login", { method: "POST", body: JSON.stringify({ username: f.get("username"), password: f.get("password") }) });
+    e.target.reset(); await start();
+  } catch (err) { $("#loginErr").textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = "Entrar"; }
+};
+
+let timer;
+async function start() {
+  const s = await api("/api/status");
+  if (!s.loggedIn) return showLogin();
+  user = s.user; $("#userLbl").textContent = s.demo ? "Modo demonstração" : user;
+  showApp(); render(); await refresh();
+  clearInterval(timer); timer = setInterval(() => document.hidden || refresh(), 10000);
+}
+start().catch((e) => toast(e.message));
+</script>
+</body>
+</html>

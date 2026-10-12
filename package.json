@@ -1,0 +1,52 @@
+{
+  "name": "tcl-ar",
+  "productName": "TCL Ar",
+  "version": "1.0.0",
+  "description": "Controle não oficial dos ar-condicionados TCL Home pela bandeja do Windows",
+  "author": "mathson123",
+  "private": true,
+  "type": "module",
+  "main": "main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "selftest": "node server.mjs --selftest",
+    "dist": "electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "br.com.mathson.tclar",
+    "productName": "TCL Ar",
+    "files": [
+      "main.mjs",
+      "server.mjs",
+      "public/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico",
+      "artifactName": "TCL-Ar-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "license": "build/license.txt",
+      "installerLanguages": [
+        "pt_BR"
+      ],
+      "language": "1046",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TCL Ar",
+      "runAfterFinish": true
+    }
+  }
+}

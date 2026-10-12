@@ -1,0 +1,40 @@
+﻿TCL Ar — controle não oficial de ar-condicionado TCL
+
+LEIA ANTES DE INSTALAR
+
+1. APP NÃO OFICIAL
+Este aplicativo NÃO é da TCL, não é afiliado, patrocinado nem aprovado pela TCL
+ou por qualquer empresa do grupo TCL. "TCL" e "TCL Home" são marcas de seus
+respectivos donos e aparecem aqui só para indicar compatibilidade.
+
+2. COMPATIBILIDADE
+Compatível:
+  - Aparelhos cadastrados no app TCL Home (Android/iOS), com a mesma conta
+    (e-mail e senha) do TCL Home.
+  - Testado com ar-condicionado split TCL Inverter.
+
+NÃO compatível:
+  - TCL Smart / Smart Life (plataforma Tuya).
+  - Intelligent AC (plataforma BroadLink).
+  - Aparelhos sem Wi-Fi ou não cadastrados no TCL Home.
+
+O primeiro cadastro do aparelho no Wi-Fi continua sendo feito pelo app
+TCL Home do celular.
+
+3. COMO FUNCIONA
+O app usa a mesma nuvem que o app TCL Home usa. Esse caminho não é documentado
+pela TCL e pode parar de funcionar a qualquer momento se a TCL mudar o serviço.
+Alguns modelos podem interpretar modo ou velocidade de ventilação de forma
+diferente.
+
+4. SEUS DADOS
+Seu e-mail e senha são enviados apenas para os servidores da TCL, no login.
+No computador fica salvo só o e-mail e um hash da senha, em
+%APPDATA%\tcl-ar\session.json. O botão "Sair" apaga esse arquivo. O app não
+envia dados para nenhum outro servidor.
+
+5. SEM GARANTIA
+O software é fornecido "como está", sem garantia de qualquer tipo. Você usa por
+sua conta e risco.
+
+Ao clicar em "Aceito" você confirma que leu e entendeu os itens acima.
